@@ -6,10 +6,15 @@ const createTask = async (data) => {
     });
 };
 
-const getTasks = async () => {
+const getTasks = async (userId) => {
     return await prisma.task.findMany({
+        where: {
+            project: {
+                userId: userId,
+            },
+        },
         include: {
-            project: true, // trae info del proyecto
+            project: true,
         },
     });
 };
