@@ -2,7 +2,11 @@ const projectService = require("../services/project.service");
 
 const createProject = async (req, res) => {
     try {
-        const project = await projectService.createProject(req.body);
+        const project = await projectService.createProject(
+            req.body,
+            req.user.userId
+        );
+
         res.json(project);
     } catch (error) {
         res.status(500).json({ error: "Error creating project" });
