@@ -15,6 +15,11 @@ export default function Login() {
 
         const data = await res.json();
         console.log(data);
+
+        //guardar token
+        localStorage.setItem("token", data.token)
+        // 🔥 refrescar auth
+        window.location.reload();
     };
 
     return (

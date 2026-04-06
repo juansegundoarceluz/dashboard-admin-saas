@@ -1,9 +1,10 @@
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
-  return (
-    <Login />
-  );
+  const isAuth = !!localStorage.getItem("token");
+
+  return isAuth ? <Dashboard /> : <Login />;
 }
 
 export default App;
