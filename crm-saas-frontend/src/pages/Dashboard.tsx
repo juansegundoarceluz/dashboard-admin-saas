@@ -10,6 +10,7 @@ import MetricCard from "../components/dashboard/MetricCard";
 import ProjectsTable from "../components/dashboard/ProjectsTable";
 import TeamPanel from "../components/dashboard/TeamPanel";
 import QuickActions from "../components/dashboard/QuickActions";
+import CreateProjectButton from "../components/dashboard/CreateProjectButton";
 
 // ─── Dashboard ──────────────────────────────────────────────────────────────
 // Composition root. Toda la logica de fetching ahora vive en useProjects.
@@ -77,6 +78,7 @@ export default function Dashboard() {
                             error={error ? "No se pudieron cargar los proyectos" : null}
                         />
                         <div className="flex flex-col gap-4">
+                            <CreateProjectButton />
                             <TeamPanel members={mockStaff} />
                             <QuickActions actions={quickActions} onAction={handleQuickAction} />
                         </div>
