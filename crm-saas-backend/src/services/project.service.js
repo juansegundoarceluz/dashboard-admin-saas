@@ -10,14 +10,16 @@ const createProject = async (data, userId) => {
     });
 };
 
-const getProjects = async () => {
+const getProjects = async (userId) => {
     return await prisma.project.findMany({
+        where: {
+            userId: userId,  // 👈 solo los proyectos de este usuario
+        },
         include: {
             tasks: true,
         },
     });
 };
-
 module.exports = {
     createProject,
     getProjects,

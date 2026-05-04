@@ -16,7 +16,7 @@ const createProject = async (req, res) => {
 
 const getProjects = async (req, res) => {
     try {
-        const projects = await projectService.getProjects();
+        const projects = await projectService.getProjects(req.user.userId); // 👈 pasá el userId
         res.json(projects);
     } catch (error) {
         res.status(500).json({ error: "Error fetching projects" });

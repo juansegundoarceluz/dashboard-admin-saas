@@ -23,7 +23,13 @@ export default function Dashboard() {
     // ─── Server state via TanStack Query ─────────────────────────────────────
     // Una sola linea reemplaza: useState(projects), useState(loading),
     // useState(error), useEffect, AbortController y todo el manejo manual.
-    const { data: projects = [], isLoading, error } = useProjects();
+    //
+    // Diferencia clave que vale grabar:
+    //   isLoading  = primera carga, todavia NO hay datos en cache.
+    //   isFetching = cualquier fetch en curso, incluye revalidacion en
+    //                background con datos viejos ya en pantalla.
+    // Para feedback sutil ("actualizando...") usamos isFetching && !isLoading.
+    const { data: projects = [], isLoading, isFetching, error } = useProjects();
 
     // ─── Auth ────────────────────────────────────────────────────────────────
     const { logout } = useAuth();
@@ -75,6 +81,7 @@ export default function Dashboard() {
                         <ProjectsTable
                             projects={projects}
                             loading={isLoading}
+                            isFetching={isFetching}
                             error={error ? "No se pudieron cargar los proyectos" : null}
                         />
                         <div className="flex flex-col gap-4">
