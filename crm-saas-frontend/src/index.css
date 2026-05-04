@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+/* ─── Design tokens ─────────────────────────────────────────────────────────
+   Tailwind v4 nos deja extender el theme directamente en CSS con @theme.
+   Estos colores se vuelven utilities: bg-app, bg-surface, border-line, etc.
+   Beneficio: si cambia la paleta, lo cambiamos acá y nada más.
+*/
+@theme {
+  --color-app:        #0D1117;  /* fondo principal */
+  --color-surface:    #161B27;  /* fondo de cards */
+  --color-sidebar:    #0F1520;  /* fondo del sidebar */
+  --color-line:       #1F2937;  /* bordes / separadores */
+  --color-muted:      #6B7280;  /* texto secundario */
+  --color-subtle:     #9CA3AF;  /* texto terciario */
+  --color-text:       #F9FAFB;  /* texto principal */
+  --color-brand:      #6366F1;  /* indigo accent */
+  --color-brand-soft: #818CF8;  /* indigo claro */
+  --color-violet:     #8B5CF6;
+  --color-success:    #22c55e;
+  --color-warning:    #eab308;
+  --color-danger:     #ef4444;
+}
+
+/* Estilos globales mínimos */
+html, body, #root {
+  height: 100%;
+}
+body {
+  background-color: var(--color-app);
+  color: var(--color-text);
+  font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

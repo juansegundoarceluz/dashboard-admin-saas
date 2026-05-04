@@ -1,67 +1,114 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-type Register = {
-    id: string;
-    name: string;
-};
+// ─── Register ───────────────────────────────────────────────────────────────
+// Tras un registro exitoso, mostramos un mensaje de éxito y navegamos al
+// login (en vez de auto-login: queremos que el usuario verifique sus
+// credenciales explícitamente). El registro NO loguea, no llama al
+// AuthContext — solo crea la cuenta.
 
-type RegisterProps = {
-    switchToLogin: () => void;
-};
+const API_URL = "http://localhost:3001/api";
 
+export default function Register() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-export default function Register({ switchToLogin }: RegisterProps) {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-    const handleRegister = async () => {
-        const res = await fetch("http://localhost:3001/api/auth/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-        });
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
 
-        const data = await res.json();
-        console.log(data);
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-        alert("Usuario creado! Ahora inicia sesión");
-        switchToLogin();
-    };
+      const data = await res.json();
 
-    return (
-        <div className="flex items-center justify-center h-screen">
-            <div className="p-6 bg-white shadow-md rounded-xl w-80">
-                <h2 className="mb-4 text-xl">Register</h2>
+      if (!res.ok) {
+        throw new Error(data.error || "Error al registrarse");
+      }
 
-                <input
-                    className="w-full p-2 mb-2 text-black rounded"
-                    placeholder="Email"
-                    onChange={(e) => setEmail(e.target.value)}
-                />
+      // Navegamos al login pasando un mensaje en location.state que el
+      // login puede mostrar como "registro exitoso, ingresa".
+      navigate("/login", {
+        state: { justRegistered: true },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-                <input
-                    className="w-full p-2 mb-4 text-black rounded"
-                    type="password"
-                    placeholder="Password"
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-app">
+      <form
+        onSubmit={handleSubmit}
+        className="w-80 rounded-xl bg-surface p-6 shadow-lg border border-line"
+      >
+        <h2 className="mb-4 text-xl font-bold text-text">Register</h2>
 
-                <button
-                    onClick={handleRegister}
-                    className="w-full p-2 text-white transition duration-300 bg-green-500 rounded hover:scale-103"
-                >
-                    Register
-                </button>
+        <input
+          className="w-full p-2 mb-2 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
+          type="text"
+          placeholder="Nombre"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          autoComplete="name"
+        />
 
-                <p
-                    className="mt-4 text-sm text-blue-400 cursor-pointer"
-                    onClick={switchToLogin}
-                >
-                    Ya tienes cuenta? Login
-                </p>
-            </div>
-        </div>
-    );
+        <input
+          className="w-full p-2 mb-2 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+        />
+
+        <input
+          className="w-full p-2 mb-4 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={6}
+          autoComplete="new-password"
+        />
+
+        {error && (
+          <p className="mb-3 text-sm text-danger" role="alert">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full p-2 text-white bg-success rounded transition-colors hover:bg-success/80 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Creando cuenta..." : "Register"}
+        </button>
+
+        <p className="mt-4 text-sm text-muted">
+          Ya tienes cuenta?{" "}
+          <Link to="/login" className="text-brand-soft hover:underline">
+            Login
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
 }
