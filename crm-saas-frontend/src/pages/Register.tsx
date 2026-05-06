@@ -8,7 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 // credenciales explícitamente). El registro NO loguea, no llama al
 // AuthContext — solo crea la cuenta.
 
-const API_URL = "http://localhost:3001/api";
+import { env } from "../lib/env";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -25,7 +25,7 @@ export default function Register() {
     setSubmitting(true);
 
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
+      const res = await fetch(`${env.API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),

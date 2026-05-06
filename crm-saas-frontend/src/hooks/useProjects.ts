@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../auth/useAuth";
 import type { Project } from "../types";
 
-const API_URL = "http://localhost:3001/api";
+import { env } from "../lib/env";
 
 // ─── useProjects ────────────────────────────────────────────────────────────
 // Custom hook: encapsula el "como traer proyectos del backend". El consumidor
@@ -22,7 +22,7 @@ export function useProjects() {
   return useQuery<Project[]>({
     queryKey: ["projects"],
     queryFn: async ({ signal }) => {
-      const res = await fetch(`${API_URL}/projects`, {
+      const res = await fetch(`${env.API_URL}/projects`, {
         headers: { Authorization: `Bearer ${token}` },
         signal,
       });

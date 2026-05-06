@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/useAuth";
 
-const API_URL = "http://localhost:3001/api";
+import { env } from "../lib/env";
 
 // ─── useDeleteProject ───────────────────────────────────────────────────────
 // Mutation para borrar un proyecto. Mismo patron que useCreateProject:
@@ -22,7 +22,7 @@ export function useDeleteProject() {
 
   return useMutation<void, Error, string>({
     mutationFn: async (projectId) => {
-      const res = await fetch(`${API_URL}/projects/${projectId}`, {
+      const res = await fetch(`${env.API_URL}/projects/${projectId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

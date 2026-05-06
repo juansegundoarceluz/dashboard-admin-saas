@@ -52,13 +52,13 @@ export default function CreateProjectButton() {
       {open && (
         <div
           // Backdrop: click afuera cierra
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
           onClick={close}
         >
           <div
             // stopPropagation: clicks dentro del card no cierran
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl"
+            className="w-full max-w-md p-6 border shadow-2xl rounded-2xl border-line bg-surface"
             role="dialog"
             aria-labelledby="create-project-title"
           >
@@ -74,7 +74,7 @@ export default function CreateProjectButton() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 autoFocus
-                className="rounded border border-line bg-app p-2 text-text placeholder-muted focus:border-brand focus:outline-none"
+                className="p-2 border rounded border-line bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
               />
 
               <textarea
@@ -82,7 +82,7 @@ export default function CreateProjectButton() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="rounded border border-line bg-app p-2 text-text placeholder-muted focus:border-brand focus:outline-none resize-none"
+                className="p-2 border rounded resize-none border-line bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
               />
 
               {error && (
@@ -96,14 +96,14 @@ export default function CreateProjectButton() {
                   type="button"
                   onClick={close}
                   disabled={isPending}
-                  className="rounded border border-line px-4 py-2 text-sm text-muted hover:bg-white/5 disabled:opacity-50"
+                  className="px-4 py-2 text-sm border rounded border-line text-muted hover:bg-white/5 disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded bg-brand px-4 py-2 text-sm text-white transition-colors hover:bg-brand/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm text-white transition-colors rounded bg-brand hover:bg-brand/80 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isPending ? "Creando..." : "Crear"}
                 </button>

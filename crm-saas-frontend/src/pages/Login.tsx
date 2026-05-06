@@ -9,7 +9,7 @@ import { useAuth } from "../auth/useAuth";
 // navigate() para ir al dashboard. La diferencia es enorme en UX y en
 // mantenibilidad.
 
-const API_URL = "http://localhost:3001/api";
+import { env } from "../lib/env";
 
 // El tipo del state que ProtectedRoute pasa al redirigir nos sirve para
 // volver al usuario a la ruta original tras el login.
@@ -38,7 +38,7 @@ export default function Login() {
     setSubmitting(true);
 
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${env.API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
