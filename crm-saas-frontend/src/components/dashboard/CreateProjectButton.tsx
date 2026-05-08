@@ -1,43 +1,45 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateProject } from "../../hooks/useCreateProject";
+import {
+  createProjectSchema,
+  type CreateProjectInput,
+} from "../../schemas/project";
 
-// ─── CreateProjectButton ────────────────────────────────────────────────────
-// Boton + modal de creacion de proyecto. Self-contained: maneja su propio
-// estado (modal abierto, valores del form, error). El consumidor solo lo
-// renderiza, no le pasa nada.
+// ─── CreateProjectButton con RHF + Zod ──────────────────────────────────────
+// Mismo patron que Login/Register. El form esta dentro de un modal
+// controlado (open/close) y solo se monta cuando esta abierto.
 //
-// El "modal" es un overlay simple. Patron clasico:
-//   - Backdrop fullscreen con onClick para cerrar (UX amigable).
-//   - stopPropagation en el card para que clicks dentro NO cierren.
-//   - onSubmit en el <form> con preventDefault.
+// reset() de useForm() limpia los valores. Lo llamamos al cerrar para que
+// si el usuario abre y cierra varias veces, el form arranque limpio.
 
 export default function CreateProjectButton() {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
 
-  // useMutation devuelve el "trigger" (mutate / mutateAsync) y flags de estado.
-  // isPending = la mutation esta en curso (TanStack Query v5; antes era isLoading).
-  const { mutate, isPending, error, reset } = useCreateProject();
+  const { mutate, isPending, error: serverError, reset: resetMutation } =
+    useCreateProject();
+
+  const {
+    register,
+    handleSubmit,
+    reset: resetForm,
+    formState: { errors },
+  } = useForm<CreateProjectInput>({
+    resolver: zodResolver(createProjectSchema),
+    mode: "onBlur",
+  });
 
   const close = () => {
     setOpen(false);
-    setName("");
-    setDescription("");
-    reset(); // limpia el error de la mutation si quedo de un intento anterior
+    resetForm();           // limpia los inputs
+    resetMutation();       // limpia el error de la mutation si quedaba
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    mutate(
-      { name, description: description || undefined },
-      {
-        // onSuccess local: solo se ejecuta para esta llamada.
-        // El onSuccess del hook (invalidate) tambien corre.
-        onSuccess: () => close(),
-      },
-    );
+  const onSubmit = (data: CreateProjectInput) => {
+    mutate(data, {
+      onSuccess: () => close(),
+    });
   };
 
   return (
@@ -51,14 +53,12 @@ export default function CreateProjectButton() {
 
       {open && (
         <div
-          // Backdrop: click afuera cierra
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           onClick={close}
         >
           <div
-            // stopPropagation: clicks dentro del card no cierran
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md p-6 border shadow-2xl rounded-2xl border-line bg-surface"
+            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl"
             role="dialog"
             aria-labelledby="create-project-title"
           >
@@ -66,28 +66,39 @@ export default function CreateProjectButton() {
               Nuevo proyecto
             </h2>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              <input
-                type="text"
-                placeholder="Nombre del proyecto"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                autoFocus
-                className="p-2 border rounded border-line bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
-              />
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+              <div>
+                <input
+                  {...register("name")}
+                  type="text"
+                  placeholder="Nombre del proyecto"
+                  autoFocus
+                  className="w-full rounded border border-line bg-app p-2 text-text placeholder-muted focus:border-brand focus:outline-none"
+                />
+                {errors.name && (
+                  <p className="mt-1 text-xs text-danger" role="alert">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
 
-              <textarea
-                placeholder="Descripcion (opcional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="p-2 border rounded resize-none border-line bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
-              />
+              <div>
+                <textarea
+                  {...register("description")}
+                  placeholder="Descripcion (opcional)"
+                  rows={3}
+                  className="w-full rounded border border-line bg-app p-2 text-text placeholder-muted focus:border-brand focus:outline-none resize-none"
+                />
+                {errors.description && (
+                  <p className="mt-1 text-xs text-danger" role="alert">
+                    {errors.description.message}
+                  </p>
+                )}
+              </div>
 
-              {error && (
+              {serverError && (
                 <p className="text-sm text-danger" role="alert">
-                  {error.message}
+                  {serverError.message}
                 </p>
               )}
 
@@ -96,14 +107,14 @@ export default function CreateProjectButton() {
                   type="button"
                   onClick={close}
                   disabled={isPending}
-                  className="px-4 py-2 text-sm border rounded border-line text-muted hover:bg-white/5 disabled:opacity-50"
+                  className="rounded border border-line px-4 py-2 text-sm text-muted hover:bg-white/5 disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-4 py-2 text-sm text-white transition-colors rounded bg-brand hover:bg-brand/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded bg-brand px-4 py-2 text-sm text-white transition-colors hover:bg-brand/80 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isPending ? "Creando..." : "Crear"}
                 </button>

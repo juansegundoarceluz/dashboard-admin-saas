@@ -2,19 +2,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/useAuth";
 import { env } from "../lib/env";
 import type { Project } from "../types";
+import type { CreateProjectInput } from "../schemas/project";
 
 // ─── useCreateProject ───────────────────────────────────────────────────────
-// Mutation para crear un proyecto. Patron classic:
-//   - mutationFn: hace el HTTP request.
-//   - onSuccess:  invalida ['projects']. TanStack Query refetchea sola.
-//
-// El consumidor recibe { mutate, isPending, error, reset, ... } y solo
-// llama mutate({ name, description }).
-
-type CreateProjectInput = {
-  name: string;
-  description?: string;
-};
+// CreateProjectInput viene del schema. Si manana cambian las reglas (ej.
+// se agrega un campo "color"), lo cambiamos en el schema y aca se actualiza
+// solo, sin tocar nada. Eso es single source of truth bien aplicado.
 
 export function useCreateProject() {
   const { token } = useAuth();
@@ -36,8 +29,6 @@ export function useCreateProject() {
       }
       return res.json();
     },
-    // Cuando la mutation termina con exito, marcamos ['projects'] como stale.
-    // TanStack Query refetchea automaticamente y la UI se actualiza sola.
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },

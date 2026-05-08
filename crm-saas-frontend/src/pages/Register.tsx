@@ -1,105 +1,101 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
-
-// ─── Register ───────────────────────────────────────────────────────────────
-// Tras un registro exitoso, mostramos un mensaje de éxito y navegamos al
-// login (en vez de auto-login: queremos que el usuario verifique sus
-// credenciales explícitamente). El registro NO loguea, no llama al
-// AuthContext — solo crea la cuenta.
-
 import { env } from "../lib/env";
+import { registerSchema, type RegisterInput } from "../schemas/auth";
+
+// ─── Register con RHF + Zod ─────────────────────────────────────────────────
+// Mismo patron que Login. El registro NO loguea al usuario; lo manda al
 
 export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
+  const [serverError, setServerError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    mode: "onBlur",
+  });
 
+  const onSubmit = async (data: RegisterInput) => {
+    setServerError(null);
     try {
       const res = await fetch(`${env.API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(data),
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Error al registrarse");
-      }
-
-      // Navegamos al login pasando un mensaje en location.state que el
-      // login puede mostrar como "registro exitoso, ingresa".
-      navigate("/login", {
-        state: { justRegistered: true },
-      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Error al registrarse");
+      navigate("/login", { state: { justRegistered: true } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    } finally {
-      setSubmitting(false);
+      setServerError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-app">
       <form
-        onSubmit={handleSubmit}
-        className="w-80 rounded-xl bg-surface p-6 shadow-lg border border-line"
+        onSubmit={handleSubmit(onSubmit)}
+        className="p-6 border shadow-lg w-80 rounded-xl bg-surface border-line"
       >
         <h2 className="mb-4 text-xl font-bold text-text">Register</h2>
 
         <input
-          className="w-full p-2 mb-2 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
+          {...register("name")}
           type="text"
           placeholder="Nombre"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
           autoComplete="name"
+          className="w-full p-2 mb-1 border rounded border-line bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
         />
+        {errors.name && (
+          <p className="mb-2 text-xs text-danger" role="alert">
+            {errors.name.message}
+          </p>
+        )}
 
         <input
-          className="w-full p-2 mb-2 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
+          {...register("email")}
           type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
           autoComplete="email"
+          className="w-full p-2 mt-2 mb-1 border rounded border-line bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
         />
+        {errors.email && (
+          <p className="mb-2 text-xs text-danger" role="alert">
+            {errors.email.message}
+          </p>
+        )}
 
         <input
-          className="w-full p-2 mb-4 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
+          {...register("password")}
           type="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
           autoComplete="new-password"
+          className="w-full p-2 mt-2 mb-1 border rounded border-line bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
         />
+        {errors.password && (
+          <p className="mb-2 text-xs text-danger" role="alert">
+            {errors.password.message}
+          </p>
+        )}
 
-        {error && (
-          <p className="mb-3 text-sm text-danger" role="alert">
-            {error}
+        {serverError && (
+          <p className="mt-3 mb-3 text-sm text-danger" role="alert">
+            {serverError}
           </p>
         )}
 
         <button
           type="submit"
-          disabled={submitting}
-          className="w-full p-2 text-white bg-success rounded transition-colors hover:bg-success/80 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSubmitting}
+          className="w-full p-2 mt-3 text-white transition-colors rounded bg-success hover:bg-success/80 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? "Creando cuenta..." : "Register"}
+          {isSubmitting ? "Creando cuenta..." : "Register"}
         </button>
 
         <p className="mt-4 text-sm text-muted">

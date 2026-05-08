@@ -1,106 +1,118 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
-
-// ─── Login ──────────────────────────────────────────────────────────────────
-// Ya no recibe `switchToRegister` por props: navegamos con <Link to="...">.
-// Ya no llama a window.location.reload(): usa useAuth().login() y luego
-// navigate() para ir al dashboard. La diferencia es enorme en UX y en
-// mantenibilidad.
-
 import { env } from "../lib/env";
+import { loginSchema, type LoginInput } from "../schemas/auth";
 
-// El tipo del state que ProtectedRoute pasa al redirigir nos sirve para
-// volver al usuario a la ruta original tras el login.
+// ─── Login con React Hook Form + Zod ────────────────────────────────────────
+// Comparado con la version anterior:
+//   - Cero useState para email/password. RHF maneja todo internamente.
+//   - Validacion declarativa: el schema dice las reglas, RHF las aplica.
+//   - register("email") conecta el input al form. El "uncontrolled" de
+//     RHF significa que no hay re-render por keystroke — gran ganancia
+//     en forms grandes.
+//   - errors.email viene del resolver Zod, ya parseado y listo para mostrar.
+
 type FromState = { from?: { pathname: string } };
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  // submitting/serverError siguen siendo useState porque son estado de UI
+  // que no tiene que ver con los campos del form en si.
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Si el usuario llegó acá redirigido desde una ruta protegida,
-  // location.state.from tiene la URL original. Si no, default a /dashboard.
   const fromPath = (location.state as FromState | null)?.from?.pathname ?? "/dashboard";
 
-  // ─── Handler ──────────────────────────────────────────────────────────────
-  // Recibimos un FormEvent porque ahora usamos <form>. preventDefault()
-  // evita la navegación nativa del navegador (la que recargaría la página).
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
+  // ─── useForm: el corazon de RHF ───────────────────────────────────────────
+  // <LoginInput> = tipa register/handleSubmit/errors automaticamente.
+  // resolver: zodResolver(loginSchema) = "valida con este schema antes de
+  //   pasarme el onSubmit. Si no pasa, llena `errors` y NO llama onSubmit".
+  // mode: "onBlur" = valida cuando el input pierde foco (mejor UX que
+  //   onChange que valida en cada tecla).
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    mode: "onBlur",
+  });
 
+  // ─── onSubmit: solo corre si la validacion paso ───────────────────────────
+  // Recibimos los datos ya tipados como LoginInput (gracias a Zod + TS).
+  // No tenemos que hacer e.preventDefault() — handleSubmit lo hace.
+  const onSubmit = async (data: LoginInput) => {
+    setServerError(null);
     try {
       const res = await fetch(`${env.API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(data),
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Error al iniciar sesion");
-      }
-
-      // Actualizamos el context (que persiste el token y notifica a todos
-      // los consumidores) y navegamos. Cero reloads.
-      login(data.token);
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Error al iniciar sesion");
+      login(body.token);
       navigate(fromPath, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    } finally {
-      setSubmitting(false);
+      setServerError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-app">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         className="w-80 rounded-xl bg-surface p-6 shadow-lg border border-line"
       >
         <h2 className="mb-4 text-xl font-bold text-text">Login</h2>
 
+        {/* register("email") inyecta name, onChange, onBlur, ref. RHF
+            recolecta el valor solo. Sin useState, sin onChange manual. */}
         <input
-          className="w-full p-2 mb-2 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
+          {...register("email")}
           type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
           autoComplete="email"
+          className="w-full p-2 mb-1 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
         />
+        {/* errors.email viene populado si el schema fallo. Solo lo mostramos
+            si existe — RHF se encarga de cuando aparecer y desaparecer. */}
+        {errors.email && (
+          <p className="mb-2 text-xs text-danger" role="alert">
+            {errors.email.message}
+          </p>
+        )}
 
         <input
-          className="w-full p-2 mb-4 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
+          {...register("password")}
           type="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
           autoComplete="current-password"
+          className="w-full p-2 mt-2 mb-1 border border-line rounded bg-app text-text placeholder-muted focus:border-brand focus:outline-none"
         />
+        {errors.password && (
+          <p className="mb-2 text-xs text-danger" role="alert">
+            {errors.password.message}
+          </p>
+        )}
 
-        {error && (
-          <p className="mb-3 text-sm text-danger" role="alert">
-            {error}
+        {/* serverError es separado: viene de la API, no de la validacion local. */}
+        {serverError && (
+          <p className="mt-3 mb-3 text-sm text-danger" role="alert">
+            {serverError}
           </p>
         )}
 
         <button
           type="submit"
-          disabled={submitting}
-          className="w-full p-2 text-white bg-brand rounded transition-colors hover:bg-brand/80 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSubmitting}
+          className="w-full p-2 mt-3 text-white bg-brand rounded transition-colors hover:bg-brand/80 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? "Ingresando..." : "Login"}
+          {isSubmitting ? "Ingresando..." : "Login"}
         </button>
 
         <p className="mt-4 text-sm text-muted">
