@@ -1,26 +1,24 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext } from "./AuthContext";
 import type { AuthState } from "./AuthContext";
+import { setUnauthorizedHandler } from "../lib/apiClient";
 
 // ─── AuthProvider ───────────────────────────────────────────────────────────
-// Componente que mete el valor del context en el arbol. Va una sola vez en
-// main.tsx, envolviendo a toda la app.
+// 1) Mantiene token en state + localStorage.
+// 2) Sincroniza entre tabs (storage event).
+// 3) Registra el handler global de 401 -> logout automatico.
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Lazy initializer: la funcion solo corre en el primer render. Sin esto,
-  // localStorage.getItem se llamaria en cada render — desperdicio puro.
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem("token"),
   );
+  const queryClient = useQueryClient();
 
-  // Si otra pestana actualiza el token, queremos enterarnos. El evento
-  // "storage" lo dispara el navegador entre tabs del mismo origen.
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "token") {
-        setToken(e.newValue);
-      }
+      if (e.key === "token") setToken(e.newValue);
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
@@ -34,10 +32,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
+    // Limpiamos el cache para que un proximo user no vea data del anterior.
+    queryClient.clear();
   };
 
-  // isAuthenticated es derived state: lo calculamos a partir de token en
-  // cada render — nunca lo guardamos en useState propio.
+  // Registramos el callback que apiClient llama al detectar 401.
+  // logout() pone token a null -> ProtectedRoute redirige a /login solo.
+  useEffect(() => {
+    setUnauthorizedHandler(() => logout());
+    return () => setUnauthorizedHandler(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const value: AuthState = {
     token,
     isAuthenticated: token !== null,
