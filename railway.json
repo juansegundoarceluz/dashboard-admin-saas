@@ -1,0 +1,12 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd crm-saas-backend && npm install && npx prisma generate && npx prisma migrate deploy"
+  },
+  "deploy": {
+    "startCommand": "cd crm-saas-backend && node src/server.js",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  }
+}
