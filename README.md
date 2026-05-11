@@ -6,7 +6,9 @@ A multi-tenant project management dashboard built as a portfolio piece to demons
 
 ## Demo
 
-_Live demo: coming soon (deployment in progress)_
+_Live demo:    
+
+📹 [Watch the 60-second demo](https://www.loom.com/share/7b1118cf17494919bff718f343991f9e)
 
 _Screenshots:_
 
@@ -180,4 +182,5 @@ MIT
 
 ## About
 
-Built by [Juan Sebastián Vedia](https://github.com/) as a learning project and portfolio piece while studying for an Engineering Developer role in Australia. Feedback welcome.
+Built by [Juan Segundo Vedia](https://github.com/) as a learning project and portfolio piece while studying for an Engineering Developer role in Australia. Feedback welcome.
+
