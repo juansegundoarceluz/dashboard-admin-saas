@@ -1,7 +1,10 @@
+
+// Este es el archivo que contiene al Sidebar
 // ─── Domain types ───────────────────────────────────────────────────────────
 // Estos tipos modelan los datos que vienen del backend (Prisma -> API).
 // Mantenerlos en un módulo separado es "single source of truth": cualquier
 // archivo que los necesita los importa de acá.
+
 
 export type Task = {
   id: string;
@@ -42,3 +45,5 @@ export type QuickAction = {
   /** color en formato hex; lo usamos como tinte del botón */
   color: string;
 };
+
+
