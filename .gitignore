@@ -24,3 +24,9 @@ yarn-debug.log*
 .idea
 .DS_Store
 *.swp
+
+# Personal / non-code files (keep local, never in the repo)
+*.docx
+~$*
+*.mp4
+CLAUDE.md
