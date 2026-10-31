@@ -8,6 +8,18 @@ Built as a portfolio project to practise production-style patterns — layered b
 
 > No demo credentials needed: open the live demo and create an account from the *Register* page (any email works).
 
+> The API runs on Render's free tier, so the first request after a period of inactivity can take up to a minute while the server wakes up. After that it responds normally.
+
+## Screenshots
+
+| Login | Dashboard |
+|-------|-----------|
+| ![Login screen](docs/screenshots/login.png) | ![Dashboard with stats, projects table and sidebar](docs/screenshots/dashboard.png) |
+
+Destructive actions ask for confirmation first:
+
+![Delete project confirmation dialog](docs/screenshots/delete-dialog.png)
+
 ## Features
 
 - Email/password registration and login (bcrypt + JWT)
@@ -27,7 +39,7 @@ Built as a portfolio project to practise production-style patterns — layered b
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, React Router v7, TanStack Query v5, React Hook Form + Zod |
 | Backend | Node.js, Express 5, Prisma ORM, PostgreSQL, bcrypt, jsonwebtoken, Zod |
 | Testing | Node's built-in test runner (`node --test`), in-memory Prisma fake |
-| Deployment | Vercel (frontend), Railway (API) |
+| Deployment | Vercel (frontend), Render (API) |
 
 ## Architecture decisions
 
@@ -50,7 +62,7 @@ cd crm-saas-backend
 npm test
 ```
 
-16 tests run the real Express app (routes, middlewares, controllers, services) against an in-memory Prisma fake, so they need no database. They cover:
+25 tests run the real Express app (routes, middlewares, controllers, services) against an in-memory Prisma fake, so they need no database. They cover:
 
 - JWT middleware: missing token and invalid token both return `401`
 - A user only lists their own projects
@@ -145,7 +157,7 @@ This is a learning project, and a few parts are intentionally unfinished:
 
 - [x] Backend request validation with Zod
 - [x] Global 401 handling
-- [x] Deployment (Vercel + Railway)
+- [x] Deployment (Vercel + Render)
 - [x] Backend authorization and auth test suite
 - [ ] Tasks CRUD with ownership checks, plus UI
 - [ ] Replace the sample data with real endpoints
