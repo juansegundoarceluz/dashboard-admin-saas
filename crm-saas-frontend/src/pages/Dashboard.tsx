@@ -19,6 +19,9 @@ import CreateProjectButton from "../components/dashboard/CreateProjectButton";
 export default function Dashboard() {
     const [activeNav, setActiveNav] = useState("dashboard");
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleSidebar = () => setIsOpen(!isOpen);
 
     // ─── Server state via TanStack Query ─────────────────────────────────────
     // Una sola linea reemplaza: useState(projects), useState(loading),
@@ -55,8 +58,21 @@ export default function Dashboard() {
         console.log("Quick action:", label);
     };
 
+    console.log("¿El Sidebar está abierto?:", isOpen);
+
     return (
         <div className="flex min-h-screen bg-app text-text">
+            {/* 2. EL BOTÓN "TIMBRE" (Solo para abrir desde afuera) */}
+            {/* Se muestra solo si el sidebar está CERRADO y estamos en MÓVIL */}
+
+            <button
+                onClick={toggleSidebar}
+                className="fixed z-30 p-2 border rounded-lg shadow-lg top-4 left-4 bg-brand md:hidden border-line"
+            >
+                {/* Icono de hamburguesa simple */}
+                <span className="text-xl">☰</span>
+            </button>
+
             <Sidebar
                 items={navItems}
                 activeId={activeNav}

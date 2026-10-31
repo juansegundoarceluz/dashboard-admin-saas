@@ -3,6 +3,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET, JWT_EXPIRES_IN } = require("../config/env");
 
+// Strip the password hash before a user object leaves the service layer.
+const toPublicUser = (user) => {
+    const { password, ...publicUser } = user;
+    return publicUser;
+};
+
 const register = async (data) => {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
@@ -14,7 +20,7 @@ const register = async (data) => {
         },
     });
 
-    return user;
+    return toPublicUser(user);
 };
 
 const login = async ({ email, password }) => {
@@ -38,7 +44,7 @@ const login = async ({ email, password }) => {
         { expiresIn: JWT_EXPIRES_IN }
     );
 
-    return { user, token };
+    return { user: toPublicUser(user), token };
 };
 
 module.exports = {
