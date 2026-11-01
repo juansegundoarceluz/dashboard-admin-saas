@@ -54,11 +54,8 @@ export default function Dashboard() {
         navigate("/login", { replace: true });
     };
 
-    const handleQuickAction = (label: string) => {
-        console.log("Quick action:", label);
-    };
-
-    console.log("¿El Sidebar está abierto?:", isOpen);
+    // Placeholder: quick actions are sample data for now (see README, "Known limitations").
+    const handleQuickAction = () => {};
 
     return (
         <div className="flex min-h-screen bg-app text-text">
