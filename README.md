@@ -88,7 +88,7 @@ cp .env.example .env
 # Edit .env: set DATABASE_URL and JWT_SECRET
 # Generate a secret with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-npx prisma migrate dev   # create the tables
+npx prisma db push       # create the tables
 npm run dev              # http://localhost:3001
 ```
 
